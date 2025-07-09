@@ -23,16 +23,21 @@ public enum HarpoonType {
     }
 
     public boolean isItemVariant(int itemId) {
-        return switch (this) {
-            case DRAGON_HARPOON -> itemId == id || itemId == ItemVariationMapping.map(id);
-            case INFERNAL_HARPOON -> itemId == id || 
-                                   itemId == ItemID.INFERNAL_HARPOON_UNCHARGED ||
-                                   itemId == ItemID.INFERNAL_HARPOON_OR ||
-                                   itemId == ItemID.INFERNAL_HARPOON_UNCHARGED_OR;
-            case CRYSTAL_HARPOON -> itemId == id || itemId == ItemID.CRYSTAL_HARPOON_INACTIVE;
-            default -> itemId == id;
-        };
+    switch (this) {
+        case DRAGON_HARPOON:
+            return itemId == id || itemId == ItemVariationMapping.map(id);
+        case INFERNAL_HARPOON:
+            return itemId == id ||
+                   itemId == ItemID.INFERNAL_HARPOON_UNCHARGED ||
+                   itemId == ItemID.INFERNAL_HARPOON_OR ||
+                   itemId == ItemID.INFERNAL_HARPOON_UNCHARGED_OR;
+        case CRYSTAL_HARPOON:
+            return itemId == id || itemId == ItemID.CRYSTAL_HARPOON_INACTIVE;
+        default:
+            return itemId == id;
     }
+    }
+
 
     public int getId()
     {
