@@ -43,7 +43,7 @@ public class TemporossPlugin extends Plugin {
     private TemporossScript temporossScript;
 
     @Inject
-    private static ConfigManager configManager;
+    private ConfigManager configManager;
 
     @Inject
     private OverlayManager overlayManager;
@@ -171,12 +171,23 @@ public class TemporossPlugin extends Plugin {
     }
 
     // Set harpoon type config
-    public static void setHarpoonType(HarpoonType harpoonType) {
-        Microbot.getConfigManager().setConfiguration("microbot-tempoross", "harpoonType", harpoonType);
+    public void setHarpoonType(HarpoonType harpoonType) {
+        configManager.setConfiguration("microbot-tempoross", "harpoonType", harpoonType);
     }
-
     // Set rope config
-    public static void setRope(boolean rope) {
-        Microbot.getConfigManager().setConfiguration("microbot-tempoross", "rope", rope);
+    public void setRope(boolean rope) {
+        configManager.setConfiguration("microbot-tempoross", "rope", rope);
+    }
+    // Set hammer config
+    public void setHammer(boolean hammer) {
+        configManager.setConfiguration("microbot-tempoross", "hammer", hammer);
+    }
+    // Set imcando hammer config
+    public void setImcandoHammer(boolean enabled) {
+    configManager.setConfiguration("microbot-tempoross", "imcandoHammerOffHand", enabled);
+    }
+    // Set spirit anglers config
+    public void setSpiritAnglers(boolean enabled) {
+    configManager.setConfiguration("microbot-tempoross", "spiritAnglers", enabled);
     }
 }
