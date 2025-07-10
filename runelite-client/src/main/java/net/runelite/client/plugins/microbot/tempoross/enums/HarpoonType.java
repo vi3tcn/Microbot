@@ -2,7 +2,6 @@ package net.runelite.client.plugins.microbot.tempoross.enums;
 
 import net.runelite.api.AnimationID;
 import net.runelite.api.ItemID;
-import net.runelite.api.ItemVariationMapping;
 
 public enum HarpoonType {
     HARPOON(ItemID.HARPOON, AnimationID.FISHING_HARPOON, "Harpoon"),
@@ -22,37 +21,32 @@ public enum HarpoonType {
         this.name = name;
     }
 
-    public boolean isItemVariant(int itemId) {
-    switch (this) {
-        case DRAGON_HARPOON:
-            return itemId == id || itemId == ItemVariationMapping.map(id);
-        case INFERNAL_HARPOON:
-            return itemId == id ||
-                   itemId == ItemID.INFERNAL_HARPOON_UNCHARGED ||
-                   itemId == ItemID.INFERNAL_HARPOON_OR ||
-                   itemId == ItemID.INFERNAL_HARPOON_UNCHARGED_OR;
-        case CRYSTAL_HARPOON:
-            return itemId == id || itemId == ItemID.CRYSTAL_HARPOON_INACTIVE;
-        default:
-            return itemId == id;
-    }
+    // Method to check if an item ID is a variant of this harpoon type
+    public boolean isVariant(int itemId) {
+        switch (this) {
+            case DRAGON_HARPOON:
+                return itemId == id || itemId == ItemID.DRAGON_HARPOON_OR;
+            case INFERNAL_HARPOON:
+                return itemId == id || 
+                       itemId == ItemID.INFERNAL_HARPOON_UNCHARGED || 
+                       itemId == ItemID.INFERNAL_HARPOON_OR ||
+                       itemId == ItemID.INFERNAL_HARPOON_UNCHARGED_OR;
+            case CRYSTAL_HARPOON:
+                return itemId == id || itemId == ItemID.CRYSTAL_HARPOON_INACTIVE;
+            default:
+                return itemId == id;
+        }
     }
 
-
-    public int getId()
-    {
+    public int getId() {
         return id;
     }
 
-    public int getAnimationId()
-    {
+    public int getAnimationId() {
         return animationId;
     }
 
-    public String getName()
-    {
+    public String getName() {
         return name;
     }
-
-
 }
