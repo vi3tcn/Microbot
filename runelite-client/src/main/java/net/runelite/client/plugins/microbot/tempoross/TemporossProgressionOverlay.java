@@ -20,18 +20,21 @@ public class TemporossProgressionOverlay extends OverlayPanel {
     private final TemporossPlugin plugin;
 
     @Inject
+    private TemporossConfig config;  // Add this line to inject the config
+
+    @Inject
     public TemporossProgressionOverlay(TemporossPlugin plugin) {
         this.plugin = plugin;
         setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
     }
 
-
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (!plugin.getConfig().showProgressionOverlay()) {
+        if (!config.showProgressionOverlay()) {  // Use the injected config directly
             return null;
         }
+
 
         // Get current state from plugin/script
         State currentState = TemporossScript.state;

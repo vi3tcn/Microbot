@@ -68,6 +68,7 @@ public class TemporossPlugin extends Plugin {
     }
 
 
+    @Override
     protected void startUp() throws Exception {
         if (overlayManager != null) {
             overlayManager.add(temporossOverlay);

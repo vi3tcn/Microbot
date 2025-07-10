@@ -60,6 +60,27 @@ public class TemporossScript extends Script {
     public static List<Rs2NpcModel> fishSpots = new ArrayList<>();
     public static List<WorldPoint> walkPath = new ArrayList<>();
 
+    private static TemporossOverlay overlay;
+
+    public static void setOverlay(TemporossOverlay temporossOverlay) {
+        overlay = temporossOverlay;
+    }
+
+    public static void updateFireData() {
+        List<Rs2NpcModel> allFires = Rs2Npc
+                .getNpcs(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Douse"))
+                .map(Rs2NpcModel::new)
+                .collect(Collectors.toList());
+        Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
+        sortedFires = allFires.stream()
+                .filter(y -> playerLocation.distanceToPath(y.getWorldLocation()) < 35)
+                .sorted(Comparator.comparingInt(x -> playerLocation.distanceToPath(x.getWorldLocation())))
+                .collect(Collectors.toList());
+        if (overlay != null) {
+            overlay.setNpcList(sortedFires);
+        }
+    }
+
     public boolean run(TemporossConfig config) {
         if (config == null) {
             Microbot.log("Configuration is null");
@@ -513,32 +534,45 @@ public class TemporossScript extends Script {
         }
     }
 
-    public static void updateFireData(){
-        List<Rs2NpcModel> allFires = Rs2Npc
-                .getNpcs(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Douse"))
-                .map(Rs2NpcModel::new)
-                .collect(Collectors.toList());
-        Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
-        sortedFires = allFires.stream()
-                .filter(y -> playerLocation.distanceToPath(y.getWorldLocation()) < 35)
-                .sorted(Comparator.comparingInt(x -> playerLocation.distanceToPath(x.getWorldLocation())))
-                .collect(Collectors.toList());
-        TemporossOverlay.setNpcList(sortedFires);
-    }
+    public class TemporossScript extends Script {
+        // ... other existing fields ...
+        private static TemporossOverlay overlay;
 
-    public static void updateCloudData(){
-        List<GameObject> allClouds = Rs2GameObject.getGameObjects().stream()
-                .filter(obj -> obj.getId() == NullObjectID.NULL_41006)
-                .collect(Collectors.toList());
-        Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
-        sortedClouds = allClouds.stream()
-                .filter(y -> playerLocation.distanceToPath(y.getWorldLocation()) < 30)
-                .sorted(Comparator.comparingInt(x -> playerLocation.distanceToPath(x.getWorldLocation())))
-                .collect(Collectors.toList());
-        TemporossOverlay.setCloudList(sortedClouds);
-    }
+        // Add a setter method for the overlay
+        public static void setOverlay(TemporossOverlay temporossOverlay) {
+            overlay = temporossOverlay;
+        }
 
-    // update ammocrate data
+        public static void updateFireData(){
+            List<Rs2NpcModel> allFires = Rs2Npc
+                    .getNpcs(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Douse"))
+                    .map(Rs2NpcModel::new)
+                    .collect(Collectors.toList());
+            Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
+            sortedFires = allFires.stream()
+                    .filter(y -> playerLocation.distanceToPath(y.getWorldLocation()) < 35)
+                    .sorted(Comparator.comparingInt(x -> playerLocation.distanceToPath(x.getWorldLocation())))
+                    .collect(Collectors.toList());
+            if (overlay != null) {
+                overlay.setNpcList(sortedFires);
+            }
+        }
+
+        public static void updateCloudData(){
+            List<GameObject> allClouds = Rs2GameObject.getGameObjects().stream()
+                    .filter(obj -> obj.getId() == NullObjectID.NULL_41006)
+                    .collect(Collectors.toList());
+            Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
+            sortedClouds = allClouds.stream()
+                    .filter(y -> playerLocation.distanceToPath(y.getWorldLocation()) < 30)
+                    .sorted(Comparator.comparingInt(x -> playerLocation.distanceToPath(x.getWorldLocation())))
+                    .collect(Collectors.toList());
+            if (overlay != null) {
+                overlay.setCloudList(sortedClouds);
+            }
+        }
+
+        // update ammocrate data
     public static void updateAmmoCrateData(){
         List<Rs2NpcModel> ammoCrates = Rs2Npc
                 .getNpcs()
@@ -549,23 +583,26 @@ public class TemporossScript extends Script {
                 .collect(Collectors.toList());
     }
 
-    public static void updateFishSpotData(){
-        // if a double fishing spot is present, prioritize it
-        fishSpots = Rs2Npc.getNpcs()
-                .filter(npc -> npc.getId() == NpcID.FISHING_SPOT_10569 || npc.getId() == NpcID.FISHING_SPOT_10568 || npc.getId() == NpcID.FISHING_SPOT_10565)
-                .filter(npc -> !inCloud(npc.getRuneliteNpc().getWorldLocation(),2))
-                .filter(npc -> npc.getWorldLocation().distanceTo(workArea.rangePoint) <= 20)
-                .sorted(Comparator
-                        .comparingInt(npc -> npc.getId() == NpcID.FISHING_SPOT_10569 ? 0 : 1))
-                .collect(Collectors.toList());
-        TemporossOverlay.setFishList(fishSpots);
-    }
+        public static void updateFishSpotData(){
+            fishSpots = Rs2Npc.getNpcs()
+                    .filter(npc -> npc.getId() == NpcID.FISHING_SPOT_10569 || npc.getId() == NpcID.FISHING_SPOT_10568 || npc.getId() == NpcID.FISHING_SPOT_10565)
+                    .filter(npc -> !inCloud(npc.getRuneliteNpc().getWorldLocation(),2))
+                    .filter(npc -> npc.getWorldLocation().distanceTo(workArea.rangePoint) <= 20)
+                    .sorted(Comparator
+                            .comparingInt(npc -> npc.getId() == NpcID.FISHING_SPOT_10569 ? 0 : 1))
+                    .collect(Collectors.toList());
+            if (overlay != null) {
+                overlay.setFishList(fishSpots);
+            }
+        }
 
-    public static void updateLastWalkPath() {
-        TemporossOverlay.setLastWalkPath(walkPath);
-    }
+        public static void updateLastWalkPath() {
+            if (overlay != null) {
+                overlay.setLastWalkPath(walkPath);
+            }
+        }
 
-    /**
+        /**
      * In solo mode, fires are continuously handled.
      * In mass world mode, this continuous loop is disabled so that fire-fighting
      * is only triggered dynamically when an objective is set.
