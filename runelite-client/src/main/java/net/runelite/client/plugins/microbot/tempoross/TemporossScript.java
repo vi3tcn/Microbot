@@ -1,4 +1,3 @@
-```java
 package net.runelite.client.plugins.microbot.tempoross;
 
 import net.runelite.api.*;
