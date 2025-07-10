@@ -1,4 +1,3 @@
-```java
 package net.runelite.client.plugins.microbot.tempoross;
 
 import net.runelite.api.*;
@@ -744,7 +743,7 @@ public class TemporossScript extends Script {
         return sortedClouds.stream().anyMatch(cloud -> finalArea.contains(cloud.getWorldLocation()));
     }
 
-    / // method to fight fires that is in a path to a location
+    // method to fight fires that is in a path to a location
     public boolean fightFiresInPath(WorldPoint location) {
         Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
         List<WorldPoint> walkerPath = playerLocation.pathTo(location,true);
