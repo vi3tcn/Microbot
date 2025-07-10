@@ -63,7 +63,7 @@ public class TemporossPlugin extends Plugin {
 
 
     @Provides
-    TemporossConfig provideConfig(ConfigManager configManager) {
+    TemporossConfig getConfig(ConfigManager configManager) {
         return configManager.getConfig(TemporossConfig.class);
     }
 

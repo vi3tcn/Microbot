@@ -21,17 +21,18 @@ public class TemporossProgressionOverlay extends OverlayPanel {
 
     @Inject
     public TemporossProgressionOverlay(TemporossPlugin plugin) {
-        super(plugin);
         this.plugin = plugin;
-        setPosition(OverlayPosition.TOP_CENTER); // Adjust position as needed
+        setPosition(OverlayPosition.TOP_LEFT);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
     }
 
+
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (TemporossScript.isInMinigame()) {
-            State currentState = TemporossScript.state;
-            if (currentState != null) {
+        if (!plugin.getConfig().showProgressionOverlay()) {
+            return null;
+        }
+        {
                 // Set up the panel's visual properties
                 panelComponent.setPreferredSize(new Dimension(300, 150));
                 panelComponent.setBackgroundColor(new Color(60, 60, 60, 180)); // Semi-transparent background

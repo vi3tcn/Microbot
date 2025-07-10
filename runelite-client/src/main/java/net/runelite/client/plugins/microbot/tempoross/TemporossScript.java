@@ -223,19 +223,47 @@ public class TemporossScript extends Script {
             }
         }
     }
+    private void executeTask() {
+        try {
+            if (!super.run() || !Microbot.isLoggedIn() || !isInMinigame()) {
+                return;
+            }
+
+            // Wave handling gets highest priority
+            if (TemporossPlugin.incomingWave) {
+                handleIncomingWave();
+                return; // Skip all other actions when handling wave
+            }
+
+            // Regular Tempoross actions continue here
+            // (fishing, cooking, dealing with fires, etc.)
+
+        } catch (Exception e) {
+            Microbot.log("Error in Tempoross: " + e.getMessage());
+        }
+    }
 
     private void handleIncomingWave() {
         if (!TemporossPlugin.incomingWave) {
             return;
         }
 
+        // First try to tether regardless of structure damage
+        TileObject tether = workArea.getClosestTether();
+        if (tether != null && !TemporossPlugin.isTethered) {
+            Rs2Camera.turnTo(tether);
+            if (Rs2GameObject.interact(tether, "Tether")) {
+                sleepUntil(() -> TemporossPlugin.isTethered, 2000);
+            }
+        }
+
         TileObject damagedMast = workArea.getBrokenMast();
         TileObject damagedTotem = workArea.getBrokenTotem();
 
-        // Get closest damaged structure
+        // Get closest damaged structure if any exists
         TileObject targetStructure = null;
         if (damagedMast != null && damagedTotem != null) {
-            WorldPoint playerLocation = Microbot.getClient().getLocalPlayer().getWorldLocation();
+            WorldPoint playerLocation = Rs2Player.getWorldLocation();
             int mastDistance = damagedMast.getWorldLocation().distanceTo(playerLocation);
             int totemDistance = damagedTotem.getWorldLocation().distanceTo(playerLocation);
             targetStructure = mastDistance < totemDistance ? damagedMast : damagedTotem;
@@ -243,22 +271,10 @@ public class TemporossScript extends Script {
             targetStructure = damagedMast != null ? damagedMast : damagedTotem;
         }
 
-        if (targetStructure != null) {
-            // First fix if damaged
+        if (targetStructure != null && Rs2Player.getWorldLocation().distanceTo(targetStructure.getWorldLocation()) <= 5) {
             Rs2Camera.turnTo(targetStructure);
             if (Rs2GameObject.interact(targetStructure, "Repair")) {
-                Rs2Player.waitForXpDrop(Skill.CONSTRUCTION, 2500);
-            }
-
-            // Then tether if not already tethered
-            if (!TemporossPlugin.isTethered) {
-                TileObject tether = workArea.getClosestTether();
-                if (tether != null) {
-                    Rs2Camera.turnTo(tether);
-                    if (Rs2GameObject.interact(tether, "Tether")) {
-                        sleepUntil(() -> TemporossPlugin.isTethered, 3500);
-                    }
-                }
+                Rs2Player.waitForXpDrop(Skill.CONSTRUCTION, 1500);
             }
         }
     }
@@ -576,7 +592,7 @@ public class TemporossScript extends Script {
             }
             if (Rs2Npc.interact(fire, "Douse")) {
                 log("Dousing fire");
-                sleepUntil(() -> !Rs2Player.isInteracting(), 3000);
+                sleepUntil(() -> !Rs2Player.isInteracting(), 600);
                 return;
             }
         }
@@ -588,13 +604,13 @@ public class TemporossScript extends Script {
             return;
 
         // Check if within 5 tiles first
-        if (Microbot.getClient().getLocalPlayer().getWorldLocation().distanceTo(damagedMast.getWorldLocation()) <= 5) {
+        if (damagedMast.getWorldLocation().distanceTo(Rs2Player.getWorldLocation()) <= 5) {
             // Only then check player state and requirements
             if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
-                    (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
-                    (temporossConfig.hammer() && temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isWearing("Imcando hammer (off-hand)", true)) ||
-                    !temporossConfig.hammer())
+                    (!temporossConfig.imcandoHammerOffHand() && temporossConfig.hammer() && !Rs2Inventory.contains("Hammer")) ||
+                    (temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isWearing("Imcando hammer (off-hand)", true))) {
                 return;
+            }
 
             sleep(600);
             if (Rs2GameObject.interact(damagedMast, "Repair")) {
@@ -610,13 +626,13 @@ public class TemporossScript extends Script {
             return;
 
         // Check if within 5 tiles first
-        if (Microbot.getClient().getLocalPlayer().getWorldLocation().distanceTo(damagedTotem.getWorldLocation()) <= 5) {
+        if (damagedTotem.getWorldLocation().distanceTo(Rs2Player.getWorldLocation()) <= 5) {
             // Only then check player state and requirements
             if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
-                    (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
-                    (temporossConfig.hammer() && temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isWearing("Imcando hammer (off-hand)", true)) ||
-                    !temporossConfig.hammer())
+                    (!temporossConfig.imcandoHammerOffHand() && temporossConfig.hammer() && !Rs2Inventory.contains("Hammer")) ||
+                    (temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isWearing("Imcando hammer (off-hand)", true))) {
                 return;
+            }
 
             sleep(600);
             if (Rs2GameObject.interact(damagedTotem, "Repair")) {
@@ -679,7 +695,7 @@ public class TemporossScript extends Script {
             case SECOND_CATCH:
             case THIRD_CATCH:
                 isFilling = false;
-                if (inCloud(Microbot.getClient().getLocalPlayer().getWorldLocation(),5)) {
+                if (inCloud(Rs2Player.getWorldLocation(), 5)) {
                     GameObject cloud = sortedClouds.stream()
                             .findFirst()
                             .orElse(null);
@@ -699,7 +715,7 @@ public class TemporossScript extends Script {
                             return;
                     }
                     if (Rs2Player.isInteracting() && Rs2Player.getInteracting() != null) {
-                        Actor interactingNpc = Microbot.getClient().getLocalPlayer().getInteracting();
+                        Actor interactingNpc = Rs2Player.getInteracting();
                         if (interactingNpc.equals(fishSpot.getActor())) {
                             return;
                         }
@@ -759,73 +775,91 @@ public class TemporossScript extends Script {
             case EMERGENCY_FILL:
             case SECOND_FILL:
             case INITIAL_FILL:
-                List<Rs2NpcModel> ammoCrates = Rs2Npc
-                        .getNpcs()
+                // Get closest ammo crate
+                List<Rs2NpcModel> ammoCrates = Rs2Npc.getNpcs()
                         .filter(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Fill"))
                         .filter(npc -> npc.getWorldLocation().distanceTo(workArea.mastPoint) <= 4)
-                        .filter(npc -> !inCloud(npc.getWorldLocation(),1))
+                        .filter(npc -> !inCloud(npc.getWorldLocation(),2))
                         .map(Rs2NpcModel::new)
                         .collect(Collectors.toList());
 
-                if (inCloud(Microbot.getClient().getLocalPlayer().getWorldLocation(),5) && !isFilling) {
-                    GameObject cloud = sortedClouds.stream()
-                            .findFirst()
-                            .orElse(null);
-                    Rs2Walker.walkNextToInstance(cloud);
-                    Rs2Player.waitForWalking();
-                    return;
-                }
-
-                ammoCrates = Rs2Npc.getNpcs()
-                        .filter(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Fill"))
-                        .filter(npc -> npc.getWorldLocation().distanceTo(workArea.mastPoint) <= 4)
-                        .filter(npc -> !inCloud(npc.getWorldLocation(),1))
-                        .map(Rs2NpcModel::new)
-                        .collect(Collectors.toList());
-
-                TemporossOverlay.setAmmoList(ammoCrates); // Update the overlay's list
-
+                // If no ammo crate found, walk to safe point
                 if (ammoCrates.isEmpty()) {
-                    log("Can't find ammo crate, walking to the safe point");
                     walkToSafePoint();
-                    return;
+                    break;
                 }
 
-                if (inCloud(LocalPoint.fromWorld(Microbot.getClient().getTopLevelWorldView(), Rs2Player.getWorldLocation()))) {
-                    log("In cloud, walking to safe point");
-                    Rs2NpcModel ammoCrate = ammoCrates.stream()
-                            .max(Comparator.comparingInt(value -> new Rs2WorldPoint(value.getWorldLocation()).distanceToPath(Rs2Player.getWorldLocation()))).orElse(null);
-                    Rs2Camera.turnTo(ammoCrate);
-                    Rs2Npc.interact(ammoCrate, "Fill");
-                    log("Switching ammo crate");
-                    Rs2Player.waitForWalking(5000);
-                    isFilling = true;
-                    return;
+                // If ammo crate found, fill from it
+                Rs2NpcModel closestCrate = ammoCrates.stream()
+                        .min(Comparator.comparingInt(c -> c.getWorldLocation().distanceTo(Rs2Player.getWorldLocation())))
+                        .orElse(null);
+
+                if (closestCrate != null) {
+                    Rs2Npc.interact(closestCrate, "Fill"); // Changed from closestCrate.interact to Rs2Npc.interact
+                    sleep(600);
                 }
-
-                var ammoCrate = ammoCrates.stream()
-                        .min(Comparator.comparingInt(value -> new Rs2WorldPoint(value.getWorldLocation()).distanceToPath(Microbot.getClient().getLocalPlayer().getWorldLocation()))).orElse(null);
-
-                // In mass world mode, clear fires along the path to the ammo crate before interacting.
-                if (!temporossConfig.solo() && ammoCrate != null) {
-                    if(!fightFiresInPath(ammoCrate.getWorldLocation()))
-                        return;
-
-                }
-
-                if (Rs2Player.isInteracting()) {
-                    if (Objects.equals(Objects.requireNonNull(Rs2Player.getInteracting()).getName(), ammoCrate.getName())) {
-                        if(Rs2AntibanSettings.devDebug)
-                            log("Interacting with: " + ammoCrate.getName());
-                        return;
-                    }
-                }
-                Rs2Camera.turnTo(ammoCrate.getActor());
-                Rs2Npc.interact(ammoCrate, "Fill");
-                log("Interacting with ammo crate");
-                sleepUntil(Rs2Player::isAnimating, 5000);
-                isFilling = true;
                 break;
+
+// Cloud checking and walking
+            if (inCloud(Rs2Player.getWorldLocation(), 5) && !isFilling) {
+                GameObject cloud = sortedClouds.stream()
+                        .findFirst()
+                        .orElse(null);
+                Rs2Walker.walkNextToInstance(cloud);
+                Rs2Player.waitForWalking();
+                return;
+            }
+
+            ammoCrates = Rs2Npc.getNpcs()
+                    .filter(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Fill"))
+                    .filter(npc -> npc.getWorldLocation().distanceTo(workArea.mastPoint) <= 4)
+                    .filter(npc -> !inCloud(npc.getWorldLocation(),1))
+                    .map(Rs2NpcModel::new)
+                    .collect(Collectors.toList());
+
+            if (ammoCrates.isEmpty()) {
+                log("Can't find ammo crate, walking to the safe point");
+                walkToSafePoint();
+                return;
+            }
+
+            if (inCloud(Rs2Player.getWorldLocation())) {
+                log("In cloud, walking to safe point");
+                Rs2NpcModel ammoCrate = ammoCrates.stream()
+                        .max(Comparator.comparingInt(value -> value.getWorldLocation().distanceTo(Rs2Player.getWorldLocation())))
+                        .orElse(null);
+                Rs2Camera.turnTo(ammoCrate);
+                Rs2Npc.interact(ammoCrate, "Fill");
+                log("Switching ammo crate");
+                Rs2Player.waitForWalking(5000);
+                isFilling = true;
+                return;
+            }
+
+            var ammoCrate = ammoCrates.stream()
+                    .min(Comparator.comparingInt(value -> value.getWorldLocation().distanceTo(Rs2Player.getWorldLocation())))
+                    .orElse(null);
+
+// In mass world mode, clear fires along the path to the ammo crate before interacting.
+            if (!temporossConfig.solo() && ammoCrate != null) {
+                if(!fightFiresInPath(ammoCrate.getWorldLocation()))
+                    return;
+            }
+
+            if (Rs2Player.isInteracting()) {
+                if (Objects.equals(Objects.requireNonNull(Rs2Player.getInteracting()).getName(), ammoCrate.getName())) {
+                    if(Rs2AntibanSettings.devDebug)
+                        log("Interacting with: " + ammoCrate.getName());
+                    return;
+                }
+            }
+            Rs2Camera.turnTo(ammoCrate);
+            Rs2Npc.interact(ammoCrate, "Fill");
+            log("Interacting with ammo crate");
+            sleepUntil(Rs2Player::isAnimating, 5000);
+            isFilling = true;
+            break;
+
 
             case ATTACK_TEMPOROSS:
                 isFilling = false;
@@ -839,7 +873,7 @@ public class TemporossScript extends Script {
                     }
                     Rs2Npc.interact(temporossPool, "Harpoon");
                     log("Attacking Tempoross");
-                    Rs2Player.waitForWalking(2000);
+                    Rs2Player.waitForWalking(1000);
                 } else {
                     if (ENERGY > 0) {
                         state = null;
@@ -862,18 +896,40 @@ public class TemporossScript extends Script {
      * In mass world mode, before walking to the safe point, clear fires along the path.
      */
     private void walkToSafePoint() {
+        // In mass world, clear fires first
         if (!temporossConfig.solo()) {
             if(!fightFiresInPath(workArea.safePoint))
                 return;
         }
+
+        // Start walking to safe point
         LocalPoint localPoint = LocalPoint.fromWorld(Microbot.getClient().getTopLevelWorldView(),workArea.safePoint);
         WorldPoint worldPoint = WorldPoint.fromLocalInstance(Microbot.getClient(),localPoint);
         Rs2Camera.turnTo(localPoint);
+
         if (Rs2Camera.isTileOnScreen(localPoint) && Microbot.isPluginEnabled(GpuPlugin.class)) {
             Rs2Walker.walkFastLocal(localPoint);
-            Rs2Player.waitForWalking(2000);
         } else {
             Rs2Walker.walkTo(worldPoint);
+        }
+
+        // Keep checking for ammo crates while walking
+        while (Rs2Player.isMoving() || !Rs2Player.isAtPoint(worldPoint)) {
+            // Check for ammo crates
+            List<Rs2NpcModel> ammoCrates = Rs2Npc.getNpcs()
+                    .filter(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Fill"))
+                    .filter(npc -> npc.getWorldLocation().distanceTo(workArea.mastPoint) <= 4)
+                    .filter(npc -> !inCloud(npc.getWorldLocation(),2))
+                    .map(Rs2NpcModel::new)
+                    .collect(Collectors.toList());
+
+            if (!ammoCrates.isEmpty()) {
+                Rs2NpcModel closestCrate = ammoCrates.get(0);
+                closestCrate.interact("Fill");
+                sleep(600);
+                return;
+            }
+            sleep(100);
         }
     }
 

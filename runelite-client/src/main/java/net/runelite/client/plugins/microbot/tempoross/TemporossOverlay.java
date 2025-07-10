@@ -22,6 +22,9 @@ import java.util.List;
 import static net.runelite.client.plugins.microbot.tempoross.TemporossScript.workArea;
 
 public class TemporossOverlay extends Overlay {
+    @Inject
+    private TemporossConfig temporossConfig;  // This field will be automatically populated
+
 
     private final TemporossPlugin plugin;
 
@@ -46,25 +49,27 @@ public class TemporossOverlay extends Overlay {
         this.plugin = plugin;
         setPosition(OverlayPosition.DYNAMIC);
         setPriority(100f);
-        setLayer(OverlayLayer.ABOVE_WIDGETS);
-        setNaughty();
+        setPreferredPosition(OverlayLayer.ABOVE_WIDGETS);  // Changed from setLayer
     }
 
     @Override
     public Dimension render(Graphics2D graphics) {
+        if (!temporossConfig.showProgressionOverlay() || !TemporossScript.isInMinigame()) {
+            return null;
+        }
 
         // Render NPC overlays if the list is not null
         if (npcList != null) {
             for (Rs2NpcModel npc : npcList) {
-                Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getRuneliteNpc().getWorldLocation());
-                Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
+                Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getWorldLocation());
+                Rs2WorldPoint playerLocation = new Rs2WorldPoint(client.getLocalPlayer().getWorldLocation());
                 renderNpcOverlay(graphics, npc, Color.RED,    npcLocation.distanceToPath(playerLocation.getWorldPoint()) + " tiles");
             }
         }
         if (ammoList != null) {
             for (Rs2NpcModel npc : ammoList) {
-                Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getRuneliteNpc().getWorldLocation());
-                Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
+                Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getWorldLocation());
+                Rs2WorldPoint playerLocation = new Rs2WorldPoint(client.getLocalPlayer().getWorldLocation());
                 renderNpcOverlay(graphics, npc, Color.RED,    npcLocation.distanceToPath(playerLocation.getWorldPoint()) + " " + Text.removeTags(npc.getName()));
             }
         }
