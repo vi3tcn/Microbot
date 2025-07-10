@@ -61,6 +61,16 @@ public class TemporossScript extends Script {
     public static List<WorldPoint> walkPath = new ArrayList<>();
 
     public boolean run(TemporossConfig config) {
+        if (config == null) {
+            Microbot.log("Configuration is null");
+            return false;
+        }
+
+        if (config.buckets() < 0 || config.buckets() > 28) {
+            Microbot.log("Invalid bucket configuration");
+            return false;
+        }
+
         temporossConfig = config;
         ENERGY = 0;
         INTENSITY = 0;
@@ -214,40 +224,115 @@ public class TemporossScript extends Script {
         }
     }
 
-    private void handleMinigame()
-    {
-        // Do not proceed if the minigame phase is too advanced
-        if (getPhase() > 2)
+    private void handleIncomingWave() {
+        if (!TemporossPlugin.incomingWave) {
             return;
-
-        // Update the current harpoon type from the configuration
-        harpoonType = temporossConfig.harpoonType();
-
-        // Check if any required item is missing. If so, fetch it and return.
-        if (areItemsMissing())
-        {
-            // Before interacting with crates, clear fires along the path to the crate.
-            // In mass world mode, only fires blocking the path will be doused.
-            fetchMissingItems();
         }
 
-        // Continue with further minigame logic if all items are available
-        // ...
+        TileObject damagedMast = workArea.getBrokenMast();
+        TileObject damagedTotem = workArea.getBrokenTotem();
+
+        // Get closest damaged structure
+        TileObject targetStructure = null;
+        if (damagedMast != null && damagedTotem != null) {
+            WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
+            int mastDistance = damagedMast.getWorldLocation().distanceTo(playerLocation);
+            int totemDistance = damagedTotem.getWorldLocation().distanceTo(playerLocation);
+            targetStructure = mastDistance < totemDistance ? damagedMast : damagedTotem;
+        } else {
+            targetStructure = damagedMast != null ? damagedMast : damagedTotem;
+        }
+
+        if (targetStructure != null) {
+            // First fix if damaged
+            Rs2Camera.turnTo(targetStructure);
+            if (Rs2GameObject.interact(targetStructure, "Repair")) {
+                Rs2Player.waitForXpDrop(Skill.CONSTRUCTION, 2500);
+            }
+
+            // Then tether if not already tethered
+            if (!TemporossPlugin.isTethered) {
+                TileObject tether = workArea.getClosestTether();
+                if (tether != null) {
+                    Rs2Camera.turnTo(tether);
+                    if (Rs2GameObject.interact(tether, "Tether")) {
+                        sleepUntil(() -> TemporossPlugin.isTethered, 3500);
+                    }
+                }
+            }
+        }
+    }
+
+    private void handleMinigame() {
+        // State checks and updates that don't require being idle
+        if (getPhase() > 2) {
+            return;
+        }
+
+        // Update configuration
+        harpoonType = temporossConfig.harpoonType();
+
+        // Check if items are missing
+        if (areItemsMissing()) {
+            if (isIdle()) {
+                fetchMissingItems();
+            }
+            return;
+        }
+
+        // Handle incoming wave first regardless of idle state
+        if (TemporossPlugin.incomingWave) {
+            handleIncomingWave();
+            return;
+        }
+
+        // Handle other critical actions
+        if (isFightingFire || TemporossPlugin.isTethered) {
+            return;
+        }
+
+        // Only proceed with regular actions if player is idle
+        if (!isIdle()) {
+            return;
+        }
+
+        // Regular game actions that require being idle
+        handleFires();
+        handleTether();
+        handleDamagedMast();
+        handleDamagedTotem();
+        handleForfeit();
+        finishGame();
+        handleMainLoop();
     }
 
     private boolean areItemsMissing() {
+        // Check for Imcando hammer if configured
+        if (temporossConfig.hammer() && temporossConfig.imcandoHammerOffHand() &&
+                !Rs2Equipment.isEquipped("Imcando hammer", EquipmentInventorySlot.SHIELD)) {
+            return true;
+        }
+
+        // Check for regular hammer
+        if (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() &&
+                !Rs2Inventory.hasItem("Hammer")) {
+            return true;
+        }
+
         // Check for harpoon
         if (!hasHarpoon() && harpoonType != HarpoonType.BAREHAND) {
             return true;
         }
 
-        // Check for hammer only if Imcando hammer is not enabled
-        if (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.hasItem("Hammer")) {
+        // Check for buckets
+        int bucketCount = Rs2Inventory.count(ItemID.BUCKET) + Rs2Inventory.count(ItemID.BUCKET_OF_WATER);
+        if ((bucketCount < temporossConfig.buckets() && state == State.INITIAL_CATCH) || bucketCount == 0) {
             return true;
         }
 
         // Check for rope
-        if (temporossConfig.rope() && !temporossConfig.spiritAnglers() && !Rs2Inventory.contains(ItemID.ROPE)) {
+        if (temporossConfig.rope() && !temporossConfig.spiritAnglers() &&
+                !Rs2Inventory.contains(ItemID.ROPE)) {
             return true;
         }
 
@@ -255,17 +340,76 @@ public class TemporossScript extends Script {
     }
 
     private void fetchMissingItems() {
-        // Only get hammer if it's enabled in config AND Imcando hammer is not enabled
+        // 1) Get hammer if needed
         if (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.hasItem("Hammer")) {
-            var hammerCrate = Rs2GameObject.findObjectById(40964); // Using the HAMMERS object ID
-            if (hammerCrate != null) {
-                if (Rs2GameObject.interact(hammerCrate, "Take-hammer")) {
-                    sleepUntil(() -> Rs2Inventory.hasItem("Hammer"), 5000);
-                }
+            if (!fightFiresInPath(workArea.hammerPoint)) {
+                log("Could not douse fires in path to hammer crate, forfeiting");
+                forfeit();
+                return;
+            }
+
+            if (Rs2GameObject.interact(workArea.getHammerCrate(), "Take")) {
+                log("Taking hammer");
+                sleepUntil(() -> Rs2Inventory.hasItem("Hammer"), 5000);
             }
         }
 
-        // Rest of the fetchMissingItems code...
+        // 2) Get harpoon if needed
+        if (!hasHarpoon() && harpoonType != HarpoonType.BAREHAND) {
+            harpoonType = temporossConfig.harpoonType();
+            log("Missing " + harpoonType.getName() + ", getting from crate");
+
+            if (!fightFiresInPath(workArea.harpoonPoint)) {
+                log("Could not douse fires in path to harpoon crate, forfeiting");
+                forfeit();
+                return;
+            }
+
+            if (Rs2GameObject.interact(workArea.getHarpoonCrate(), "Take")) {
+                log("Taking " + harpoonType.getName());
+                sleepUntil(this::hasHarpoon, 10000);
+            }
+            return;
+        }
+
+        // 3) Get buckets if needed
+        int bucketCount = Rs2Inventory.count(ItemID.BUCKET) + Rs2Inventory.count(ItemID.BUCKET_OF_WATER);
+        if ((bucketCount < temporossConfig.buckets() && state == State.INITIAL_CATCH) || bucketCount == 0) {
+            log("Buckets: " + bucketCount);
+
+            if (!fightFiresInPath(workArea.bucketPoint)) {
+                log("Could not douse fires in path to bucket crate, forfeiting");
+                forfeit();
+                return;
+            }
+
+            sleepUntil(() ->
+                            Rs2Inventory.count(ItemID.BUCKET) + Rs2Inventory.count(ItemID.BUCKET_OF_WATER) >= temporossConfig.buckets(),
+                    () -> {
+                        if (Rs2GameObject.interact(workArea.getBucketCrate(), "Take")) {
+                            log("Taking buckets");
+                            Rs2Inventory.waitForInventoryChanges(3000);
+                        }
+                    },
+                    10000,
+                    300
+            );
+            return;
+        }
+
+        // 4) Get rope if needed
+        if (temporossConfig.rope() && !temporossConfig.spiritAnglers() && !Rs2Inventory.contains(ItemID.ROPE)) {
+            if (!fightFiresInPath(workArea.ropePoint)) {
+                log("Could not douse fires in path to rope crate, forfeiting");
+                forfeit();
+                return;
+            }
+
+            if (Rs2GameObject.interact(workArea.getRopeCrate(), "Take")) {
+                log("Taking rope");
+                sleepUntil(() -> Rs2Inventory.contains(ItemID.ROPE), 10000);
+            }
+        }
     }
 
     private boolean isOnStartingBoat() {
@@ -274,7 +418,9 @@ public class TemporossScript extends Script {
             log("Failed to find starting ladder");
             return false;
         }
-        return Rs2Player.getWorldLocation().getX() < startingLadder.getWorldLocation().getX();
+        WorldPoint playerLoc = Rs2Player.getWorldLocation();
+        WorldPoint ladderLoc = startingLadder.getWorldLocation();
+        return playerLoc.getX() < ladderLoc.getX();
     }
 
     private void handleEnterMinigame() {
@@ -307,6 +453,17 @@ public class TemporossScript extends Script {
             }
         }
         sleepUntil(TemporossScript::isInMinigame, 30000);
+    }
+
+    private boolean isIdle() {
+        return !Rs2Player.isAnimating() && !Rs2Player.isMoving();
+    }
+
+    private void handleIdleState() {
+        if (!isIdle()) {
+            return; // Wait until player is idle before proceeding
+        }
+        // Rest of your idle state handling code...
     }
 
     public static void handleWidgetInfo() {
@@ -427,12 +584,13 @@ public class TemporossScript extends Script {
 
     private void handleDamagedMast() {
         if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
-            (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
-            !temporossConfig.hammer())
+                (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
+                (temporossConfig.hammer() && temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isEquipped("Imcando hammer", EquipmentInventorySlot.SHIELD)) ||
+                !temporossConfig.hammer())
             return;
 
         TileObject damagedMast = workArea.getBrokenMast();
-        if(damagedMast == null)
+        if (damagedMast == null)
             return;
         if (Microbot.getClient().getLocalPlayer().getWorldLocation().distanceTo(damagedMast.getWorldLocation()) <= 5) {
             sleep(600);
@@ -445,8 +603,9 @@ public class TemporossScript extends Script {
 
     private void handleDamagedTotem() {
         if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
-            (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
-            !temporossConfig.hammer())
+                (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
+                (temporossConfig.hammer() && temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isEquipped("Imcando hammer", EquipmentInventorySlot.SHIELD)) ||
+                !temporossConfig.hammer())
             return;
 
         TileObject damagedTotem = workArea.getBrokenTotem();
