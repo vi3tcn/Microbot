@@ -32,8 +32,11 @@ public class TemporossProgressionOverlay extends OverlayPanel {
         if (!plugin.getConfig().showProgressionOverlay()) {
             return null;
         }
-        {
-                // Set up the panel's visual properties
+
+        // Get current state from plugin/script
+        State currentState = TemporossScript.state;
+
+        // Set up the panel's visual properties
                 panelComponent.setPreferredSize(new Dimension(300, 150));
                 panelComponent.setBackgroundColor(new Color(60, 60, 60, 180)); // Semi-transparent background
 
@@ -106,8 +109,7 @@ public class TemporossProgressionOverlay extends OverlayPanel {
                 progressBar.setLabelDisplayMode(ProgressBarComponent.LabelDisplayMode.PERCENTAGE);
 
                 panelComponent.getChildren().add(progressBar);
-            }
-        }
+
         return super.render(graphics);
     }
 
