@@ -389,14 +389,14 @@ public class TemporossScript extends Script {
         TemporossOverlay.setAmmoList(ammoCrates);
     }
 
-    public static void updateFishSpotData(){
+    public static void updateFishSpotData() {
         // if double fishing spot is present, prioritize it
         fishSpots = Rs2Npc.getNpcs()
-                .filter(npc -> npc.getId() == NpcID.FISHING_SPOT_10569 || npc.getId() == NpcID.FISHING_SPOT_10568 || npc.getId() == NpcID.FISHING_SPOT_10565)
-                .filter(npc -> !inCloud(npc.getRuneliteNpc().getWorldLocation(),2))
+                .filter(npc -> npc.getId() == FISHING_SPOT_ID || npc.getId() == SPIRIT_POOL_ID)
+                .filter(npc -> !inCloud(npc.getWorldLocation(), 2))
                 .filter(npc -> npc.getWorldLocation().distanceTo(workArea.rangePoint) <= 20)
                 .sorted(Comparator
-                        .comparingInt(npc -> npc.getId() == NpcID.FISHING_SPOT_10569 ? 0 : 1))
+                        .comparingInt(npc -> npc.getId() == FISHING_SPOT_ID ? 0 : 1))
                 .collect(Collectors.toList());
         TemporossOverlay.setFishList(fishSpots);
     }
@@ -557,7 +557,7 @@ public class TemporossScript extends Script {
                     }
                     Rs2Camera.turnTo(fishSpot);
                     Rs2Npc.interact(fishSpot, "Harpoon");
-                    log("Interacting with " + (fishSpot.getId() == NpcID.FISHING_SPOT_10569 ? "double" : "single") + " fish spot");
+                    log("Interacting with " + (fishSpot.getId() == FISHING_SPOT_ID ? "double" : "single") + " fish spot");
                     Rs2Player.waitForWalking(2000);
                 } else {
                     // In mass world mode, clear fires along the path to the totem pole before moving.
