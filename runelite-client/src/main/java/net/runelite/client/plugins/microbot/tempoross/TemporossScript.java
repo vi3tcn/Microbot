@@ -729,12 +729,14 @@ public class TemporossScript extends Script {
             }
 
             // Then check for ammo crate
-            NPC ammoCrate = workArea.getAmmoCrate();
-            if (ammoCrate != null) {
-                if (Rs2Npc.interact(ammoCrate, "Fill")) {
-                    log("Found ammo crate while walking to safe point, filling bucket");
-                    sleepUntil(() -> !Rs2Player.isInteracting(), 5000);
-                    return;
+            if (workArea != null) {  // Add null check here
+                NPC ammoCrate = workArea.getAmmoCrate();
+                if (ammoCrate != null) {
+                    if (Rs2Npc.interact(ammoCrate, "Fill")) {
+                        log("Found ammo crate while walking to safe point, filling bucket");
+                        sleepUntil(() -> !Rs2Player.isInteracting(), 5000);
+                        return;
+                    }
                 }
             }
 
@@ -744,7 +746,7 @@ public class TemporossScript extends Script {
 
         Rs2Player.waitForWalking(2000);
     }
-
+    
     /**
      * In mass world mode, before walking to the spirit pool, clear fires along the path.
      */
