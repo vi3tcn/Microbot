@@ -30,7 +30,7 @@ public enum HarpoonType {
                 return itemId == id || 
                        itemId == ItemID.INFERNAL_HARPOON_UNCHARGED || 
                        itemId == ItemID.INFERNAL_HARPOON_OR ||
-                       itemId == ItemID.INFERNAL_HARPOON_UNCHARGED_OR;
+                       itemId == ItemID.INFERNAL_HARPOON_UNCHARGED_25367;
             case CRYSTAL_HARPOON:
                 return itemId == id || itemId == ItemID.CRYSTAL_HARPOON_INACTIVE;
             default:
