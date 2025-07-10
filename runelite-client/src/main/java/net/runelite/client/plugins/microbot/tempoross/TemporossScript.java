@@ -126,7 +126,8 @@ public class TemporossScript extends Script {
     }
 
     private boolean hasHarpoon() {
-        return Rs2Inventory.contains(harpoonType.getId()) || Rs2Equipment.hasEquipped(harpoonType.getId());
+        return Rs2Inventory.getAll().stream().anyMatch(item -> harpoonType.isVariant(item.getId())) || 
+           Rs2Equipment.getAll().stream().anyMatch(item -> harpoonType.isVariant(item.getId()));
     }
 
     private void determineWorkArea() {
@@ -189,7 +190,7 @@ public class TemporossScript extends Script {
     }
 
     public void handleForfeit() {
-        if ((INTENSITY >= 94 && state == State.THIRD_COOK)) {
+        if ((INTENSITY >= 94 && state == State.THIRD_COOK))) {
             var forfeitNpc = Rs2Npc.getNearestNpcWithAction("Forfeit");
             if (forfeitNpc != null) {
                 if (Rs2Npc.interact(forfeitNpc, "Forfeit")) {
