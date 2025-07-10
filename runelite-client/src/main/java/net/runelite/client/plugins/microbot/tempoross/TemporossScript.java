@@ -23,8 +23,10 @@ import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.npc.Rs2NpcModel;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
+import net.runelite.client.plugins.microbot.util.Rs2Client;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
 import net.runelite.api.ObjectID;
+import net.runelite.client.ui.overlay.Overlay;
 
 
 import java.util.*;
@@ -35,15 +37,21 @@ import java.util.stream.Collectors;
 
 import static net.runelite.client.plugins.microbot.Microbot.log;
 
-public class TemporossScript extends Script {
+public class TemporossOverlay extends Overlay {
+    private List<Rs2NpcModel> npcList;
 
+    public void setNpcList(List<Rs2NpcModel> npcList) {
+        this.npcList = npcList;
+    }
+}
+
+public class TemporossScript extends Script {
     // Version string
     public static final String VERSION = "1.4.0";
     public static final Pattern DIGIT_PATTERN = Pattern.compile("(\\d+)");
     public static final int TEMPOROSS_REGION = 12078;
 
     // Game state variables
-
     public static int ENERGY;
     public static int INTENSITY;
     public static int ESSENCE;
@@ -77,9 +85,10 @@ public class TemporossScript extends Script {
                 .sorted(Comparator.comparingInt(x -> playerLocation.distanceToPath(x.getWorldLocation())))
                 .collect(Collectors.toList());
         if (overlay != null) {
-            overlay.setNpcList(sortedFires);
+            overlay.setFires(sortedFires);  // Changed method name to setFires
         }
     }
+
 
     public boolean run(TemporossConfig config) {
         if (config == null) {
