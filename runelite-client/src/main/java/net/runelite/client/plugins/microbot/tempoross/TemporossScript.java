@@ -26,6 +26,7 @@ import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
 import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
 import net.runelite.client.plugins.microbot.tempoross.TemporossWorkArea;
 import net.runelite.api.ObjectID;
+import net.runelite.api.NPC;
 
 
 import java.util.*;
@@ -728,9 +729,9 @@ public class TemporossScript extends Script {
             }
 
             // Then check for ammo crate
-            TileObject ammoCrate = workArea.getAmmoCrate();
+            NPC ammoCrate = workArea.getAmmoCrate();
             if (ammoCrate != null) {
-                if (Rs2GameObject.interact(ammoCrate, "Fill")) {
+                if (Rs2Npc.interact(ammoCrate, "Fill")) {
                     log("Found ammo crate while walking to safe point, filling bucket");
                     sleepUntil(() -> !Rs2Player.isInteracting(), 5000);
                     return;
