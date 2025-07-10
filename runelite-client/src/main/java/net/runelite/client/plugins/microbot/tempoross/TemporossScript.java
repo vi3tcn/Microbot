@@ -1,3 +1,4 @@
+```java
 package net.runelite.client.plugins.microbot.tempoross;
 
 import net.runelite.api.*;
@@ -23,6 +24,9 @@ import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.npc.Rs2NpcModel;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
+import net.runelite.api.ObjectID;
+
+
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -126,8 +130,8 @@ public class TemporossScript extends Script {
     }
 
     private boolean hasHarpoon() {
-        return Rs2Inventory.getAll().stream().anyMatch(item -> harpoonType.isVariant(item.getId())) || 
-           Rs2Equipment.getAll().stream().anyMatch(item -> harpoonType.isVariant(item.getId()));
+        return Rs2Inventory.all().stream().anyMatch(item -> harpoonType.isVariant(item.getId())) ||
+           Rs2Equipment.all().stream().anyMatch(item -> harpoonType.isVariant(item.getId()));
     }
 
     private void determineWorkArea() {
@@ -254,14 +258,14 @@ public class TemporossScript extends Script {
     private void fetchMissingItems() {
         // Only get hammer if it's enabled in config AND Imcando hammer is not enabled
         if (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.hasItem("Hammer")) {
-            var hammerCrate = Rs2GameObject.findObject("Hammer crate");
+            var hammerCrate = Rs2GameObject.findObjectById(40964); // Using the HAMMERS object ID
             if (hammerCrate != null) {
                 if (Rs2GameObject.interact(hammerCrate, "Take-hammer")) {
                     sleepUntil(() -> Rs2Inventory.hasItem("Hammer"), 5000);
                 }
             }
         }
-        
+
         // Rest of the fetchMissingItems code...
     }
 
@@ -424,8 +428,8 @@ public class TemporossScript extends Script {
     }
 
     private void handleDamagedMast() {
-        if (Rs2Player.isMoving() || Rs2Player.isInteracting() || 
-            (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) || 
+        if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
+            (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
             !temporossConfig.hammer())
             return;
 
@@ -442,8 +446,8 @@ public class TemporossScript extends Script {
     }
 
     private void handleDamagedTotem() {
-        if (Rs2Player.isMoving() || Rs2Player.isInteracting() || 
-            (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) || 
+        if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
+            (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
             !temporossConfig.hammer())
             return;
 
@@ -609,11 +613,13 @@ public class TemporossScript extends Script {
                     return;
                 }
 
+                List<Rs2NpcModel> ammoCrates = TemporossOverlay.getAmmoList();
                 if (ammoCrates.isEmpty()) {
                     log("Can't find ammo crate, walking to the safe point");
                     walkToSafePoint();
                     return;
                 }
+
 
                 if (inCloud(Microbot.getClient().getLocalLocation())) {
                     log("In cloud, walking to safe point");
@@ -738,7 +744,7 @@ public class TemporossScript extends Script {
         return sortedClouds.stream().anyMatch(cloud -> finalArea.contains(cloud.getWorldLocation()));
     }
 
-    // method to fight fires that is in a path to a location
+    / // method to fight fires that is in a path to a location
     public boolean fightFiresInPath(WorldPoint location) {
         Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
         List<WorldPoint> walkerPath = playerLocation.pathTo(location,true);
