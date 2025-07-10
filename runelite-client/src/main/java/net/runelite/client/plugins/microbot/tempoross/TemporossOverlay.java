@@ -71,7 +71,7 @@ public class TemporossOverlay extends Overlay {
         if (fishList != null) {
             for (Rs2NpcModel npc : fishList) {
                 Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getWorldLocation());
-                renderNpcOverlay(graphics, npc, Color.RED,   "Duck was here");
+                renderNpcOverlay(graphics, npc, Color.RED, "");
             }
         }
         if (cloudList != null) {

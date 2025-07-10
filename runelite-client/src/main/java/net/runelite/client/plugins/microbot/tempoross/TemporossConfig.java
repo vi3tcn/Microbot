@@ -126,4 +126,15 @@ default boolean imcandoHammerOffHand() {
     default HarpoonType harpoonType() {
         return HarpoonType.INFERNAL_HARPOON;
     }
+
+    @ConfigItem(
+            keyName = "showProgressionOverlay",
+            name = "Show Progression Overlay",
+            description = "Toggle the progression overlay display",
+            position = 5,
+            section = generalSection
+    )
+    default boolean showProgressionOverlay() {
+        return true;
+    }
 }
