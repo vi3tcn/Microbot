@@ -1,6 +1,7 @@
 package net.runelite.client.plugins.microbot.tempoross;
 
 import net.runelite.api.*;
+import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.api.coords.LocalPoint;
 import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.widgets.InterfaceID;
@@ -235,7 +236,7 @@ public class TemporossScript extends Script {
         // Get closest damaged structure
         TileObject targetStructure = null;
         if (damagedMast != null && damagedTotem != null) {
-            WorldPoint playerLocation = client.getLocalPlayer().getWorldLocation();
+            WorldPoint playerLocation = Microbot.getClient().getLocalPlayer().getWorldLocation();
             int mastDistance = damagedMast.getWorldLocation().distanceTo(playerLocation);
             int totemDistance = damagedTotem.getWorldLocation().distanceTo(playerLocation);
             targetStructure = mastDistance < totemDistance ? damagedMast : damagedTotem;
