@@ -2,6 +2,7 @@ package net.runelite.client.plugins.microbot.tempoross;
 
 import com.google.inject.Inject;
 import lombok.Setter;
+import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.Perspective;
 import net.runelite.api.Point;
@@ -23,25 +24,25 @@ import static net.runelite.client.plugins.microbot.tempoross.TemporossScript.wor
 
 public class TemporossOverlay extends Overlay {
     @Inject
-    private TemporossConfig temporossConfig;  // This field will be automatically populated
-
+    private TemporossConfig temporossConfig;
 
     private final TemporossPlugin plugin;
 
-    // Add a setter method to feed the list of NPCs
     @Setter
-    private static List<Rs2NpcModel> npcList; // Add this field to store the list of NPCs
+    private List<Rs2NpcModel> npcList;
     @Setter
-    private static List<Rs2NpcModel> fishList; // Add this field to store the list of NPCs
+    private List<Rs2NpcModel> fishList;
     @Setter
-    private static List<GameObject> cloudList; // Add this field to store the list of NPCs
+    private List<GameObject> cloudList;
     @Setter
-    private static List<Rs2NpcModel> ammoList; // Add this field to store the list of NPCs
+    private List<Rs2NpcModel> ammoList;
     @Setter
-    private static List<Rs2NpcModel> leaveList; // Add this field to store the list of NPCs
+    private List<Rs2NpcModel> leaveList;
     @Setter
-    private static List<WorldPoint> lastWalkPath; // Add this field to store the walk path
+    private List<WorldPoint> lastWalkPath;
 
+    @Inject
+    private Client client;
 
     @Inject
     public TemporossOverlay(TemporossPlugin plugin) {
@@ -49,7 +50,7 @@ public class TemporossOverlay extends Overlay {
         this.plugin = plugin;
         setPosition(OverlayPosition.DYNAMIC);
         setPriority(100f);
-        setPreferredPosition(OverlayLayer.ABOVE_WIDGETS);  // Changed from setLayer
+        setLayer(OverlayLayer.ABOVE_WIDGETS);
     }
 
     @Override
@@ -63,7 +64,7 @@ public class TemporossOverlay extends Overlay {
             for (Rs2NpcModel npc : npcList) {
                 Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getWorldLocation());
                 Rs2WorldPoint playerLocation = new Rs2WorldPoint(client.getLocalPlayer().getWorldLocation());
-                renderNpcOverlay(graphics, npc, Color.RED,    npcLocation.distanceToPath(playerLocation.getWorldPoint()) + " tiles");
+                renderNpcOverlay(graphics, npc, Color.RED, npcLocation.distanceToPath(playerLocation.getWorldPoint()) + " tiles");
             }
         }
         if (ammoList != null) {

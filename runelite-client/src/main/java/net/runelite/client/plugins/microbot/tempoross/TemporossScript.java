@@ -914,7 +914,7 @@ public class TemporossScript extends Script {
         }
 
         // Keep checking for ammo crates while walking
-        while (Rs2Player.isMoving() || !Rs2Player.isAtPoint(worldPoint)) {
+        while (Rs2Player.isMoving() || !Rs2Player.getWorldLocation().equals(worldPoint)) {
             // Check for ammo crates
             List<Rs2NpcModel> ammoCrates = Rs2Npc.getNpcs()
                     .filter(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Fill"))
@@ -925,7 +925,7 @@ public class TemporossScript extends Script {
 
             if (!ammoCrates.isEmpty()) {
                 Rs2NpcModel closestCrate = ammoCrates.get(0);
-                closestCrate.interact("Fill");
+                Rs2Npc.interact(closestCrate, "Fill");
                 sleep(600);
                 return;
             }
@@ -954,8 +954,17 @@ public class TemporossScript extends Script {
             Rs2Walker.walkTo(getTrueWorldPoint(workArea.spiritPoolPoint));
     }
 
+    private boolean inCloud(WorldPoint point) {
+        if (sortedClouds.isEmpty())
+            return false;
+        LocalPoint localPoint = LocalPoint.fromWorld(Microbot.getClient().getTopLevelWorldView(), point);
+        if (localPoint == null)
+            return false;
+        return inCloud(localPoint);
+    }
+
     private boolean inCloud(LocalPoint point) {
-        if(sortedClouds.isEmpty())
+        if (sortedClouds.isEmpty())
             return false;
         GameObject cloud = Rs2GameObject.getGameObject(point);
         return cloud != null && cloud.getId() == NullObjectID.NULL_41006;
