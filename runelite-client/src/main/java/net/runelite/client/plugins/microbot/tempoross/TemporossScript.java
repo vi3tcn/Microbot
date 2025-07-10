@@ -632,7 +632,7 @@ public class TemporossScript extends Script {
                     Rs2Camera.turnTo(ammoCrate);
                     Rs2Npc.interact(ammoCrate, "Fill");
                     log("Switching ammo crate");
-                    Rs2Player.waitForWalking(5000);
+                    Rs2Player.waitForWalking(3000);
                     isFilling = true;
                     return;
                 }
