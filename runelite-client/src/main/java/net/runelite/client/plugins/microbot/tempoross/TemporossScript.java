@@ -190,7 +190,7 @@ public class TemporossScript extends Script {
     }
 
     public void handleForfeit() {
-        if ((INTENSITY >= 94 && state == State.THIRD_COOK))) {
+        if (INTENSITY >= 94 && state == State.THIRD_COOK) {
             var forfeitNpc = Rs2Npc.getNearestNpcWithAction("Forfeit");
             if (forfeitNpc != null) {
                 if (Rs2Npc.interact(forfeitNpc, "Forfeit")) {
