@@ -27,6 +27,8 @@ import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
 import net.runelite.client.plugins.microbot.tempoross.TemporossWorkArea;
 import net.runelite.api.ObjectID;
 import net.runelite.api.NPC;
+import net.runelite.api.gameval.NpcID;
+
 
 
 import java.util.*;
@@ -61,6 +63,10 @@ public class TemporossScript extends Script {
     public static List<GameObject> sortedClouds = new ArrayList<>();
     public static List<Rs2NpcModel> fishSpots = new ArrayList<>();
     public static List<WorldPoint> walkPath = new ArrayList<>();
+
+    private static final int SPIRIT_POOL_ID = 10565;
+    private static final int FISHING_SPOT_ID = 10569;
+
 
     public boolean run(TemporossConfig config) {
         temporossConfig = config;
@@ -492,8 +498,12 @@ public class TemporossScript extends Script {
     }
 
     private void handleStateLoop() {
-        temporossPool = Rs2Npc.getNpcs().filter(npc -> npc.getId() == NpcID.SPIRIT_POOL).min(Comparator.comparingInt(x -> workArea.spiritPoolPoint.distanceTo(x.getWorldLocation()))).orElse(null);
-        boolean doubleFishingSpot = !fishSpots.isEmpty() && fishSpots.get(0).getId() == NpcID.FISHING_SPOT_10569;
+        temporossPool = Rs2Npc.getNpcs()
+                .filter(npc -> npc.getId() == SPIRIT_POOL_ID)
+                .min(Comparator.comparingInt(x -> workArea.spiritPoolPoint.distanceTo(x.getWorldLocation())))
+                .orElse(null);
+
+        boolean doubleFishingSpot = !fishSpots.isEmpty() && fishSpots.get(0).getId() == FISHING_SPOT_ID;
 
         if (TemporossScript.state == State.INITIAL_COOK && doubleFishingSpot) {
             log("Double fishing spot detected, skipping initial cook");

@@ -7,6 +7,11 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.util.coords.Rs2WorldPoint;
 import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
+import net.runelite.client.plugins.microbot.util.npc.Rs2NpcModel;
+import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
+import net.runelite.api.NPC;
+import net.runelite.api.gameval.NpcID;
+
 
 
 public class TemporossWorkArea
@@ -53,6 +58,25 @@ public class TemporossWorkArea
             this.spiritPoolPoint = exitNpc.dx(-11).dy(-4);
         }
     }
+
+    public NPC getAmmoCrate()
+    {
+        final int[] AMMO_CRATE_IDS = {
+                10576,  // TEMPOROSS_NPC_CRATE_AMMUNITION_1
+                10577,  // TEMPOROSS_NPC_CRATE_AMMUNITION_2
+                10578,  // TEMPOROSS_NPC_CRATE_AMMUNITION_3
+                10579   // TEMPOROSS_NPC_CRATE_AMMUNITION_4
+        };
+
+        for (int id : AMMO_CRATE_IDS) {
+            NPC crate = Rs2Npc.getNpc(id);
+            if (crate != null) {
+                return crate;
+            }
+        }
+        return null;
+    }
+
 
     public TileObject getBucketCrate()
     {
