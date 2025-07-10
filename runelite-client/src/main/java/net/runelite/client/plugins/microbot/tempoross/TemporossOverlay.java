@@ -2,7 +2,6 @@ package net.runelite.client.plugins.microbot.tempoross;
 
 import com.google.inject.Inject;
 import lombok.Setter;
-import net.runelite.api.Client;
 import net.runelite.api.GameObject;
 import net.runelite.api.Perspective;
 import net.runelite.api.Point;
@@ -23,26 +22,23 @@ import java.util.List;
 import static net.runelite.client.plugins.microbot.tempoross.TemporossScript.workArea;
 
 public class TemporossOverlay extends Overlay {
-    @Inject
-    private TemporossConfig temporossConfig;
 
     private final TemporossPlugin plugin;
 
+    // Add a setter method to feed the list of NPCs
     @Setter
-    private List<Rs2NpcModel> npcList;
+    private static List<Rs2NpcModel> npcList; // Add this field to store the list of NPCs
     @Setter
-    private List<Rs2NpcModel> fishList;
+    private static List<Rs2NpcModel> fishList; // Add this field to store the list of NPCs
     @Setter
-    private List<GameObject> cloudList;
+    private static List<GameObject> cloudList; // Add this field to store the list of NPCs
     @Setter
-    private List<Rs2NpcModel> ammoList;
+    private static List<Rs2NpcModel> ammoList; // Add this field to store the list of NPCs
     @Setter
-    private List<Rs2NpcModel> leaveList;
+    private static List<Rs2NpcModel> leaveList; // Add this field to store the list of NPCs
     @Setter
-    private List<WorldPoint> lastWalkPath;
+    private static List<WorldPoint> lastWalkPath; // Add this field to store the walk path
 
-    @Inject
-    private Client client;
 
     @Inject
     public TemporossOverlay(TemporossPlugin plugin) {
@@ -51,26 +47,24 @@ public class TemporossOverlay extends Overlay {
         setPosition(OverlayPosition.DYNAMIC);
         setPriority(100f);
         setLayer(OverlayLayer.ABOVE_WIDGETS);
+        setNaughty();
     }
 
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (!temporossConfig.showProgressionOverlay() || !TemporossScript.isInMinigame()) {
-            return null;
-        }
 
         // Render NPC overlays if the list is not null
         if (npcList != null) {
             for (Rs2NpcModel npc : npcList) {
-                Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getWorldLocation());
-                Rs2WorldPoint playerLocation = new Rs2WorldPoint(client.getLocalPlayer().getWorldLocation());
-                renderNpcOverlay(graphics, npc, Color.RED, npcLocation.distanceToPath(playerLocation.getWorldPoint()) + " tiles");
+                Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getRuneliteNpc().getWorldLocation());
+                Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
+                renderNpcOverlay(graphics, npc, Color.RED,    npcLocation.distanceToPath(playerLocation.getWorldPoint()) + " tiles");
             }
         }
         if (ammoList != null) {
             for (Rs2NpcModel npc : ammoList) {
-                Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getWorldLocation());
-                Rs2WorldPoint playerLocation = new Rs2WorldPoint(client.getLocalPlayer().getWorldLocation());
+                Rs2WorldPoint npcLocation = new Rs2WorldPoint(npc.getRuneliteNpc().getWorldLocation());
+                Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
                 renderNpcOverlay(graphics, npc, Color.RED,    npcLocation.distanceToPath(playerLocation.getWorldPoint()) + " " + Text.removeTags(npc.getName()));
             }
         }

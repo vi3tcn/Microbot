@@ -63,12 +63,11 @@ public class TemporossPlugin extends Plugin {
 
 
     @Provides
-    TemporossConfig getConfig(ConfigManager configManager) {
+    TemporossConfig provideConfig(ConfigManager configManager) {
         return configManager.getConfig(TemporossConfig.class);
     }
 
 
-    @Override
     protected void startUp() throws Exception {
         if (overlayManager != null) {
             overlayManager.add(temporossOverlay);

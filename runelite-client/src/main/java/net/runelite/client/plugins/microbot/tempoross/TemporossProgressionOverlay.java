@@ -20,26 +20,19 @@ public class TemporossProgressionOverlay extends OverlayPanel {
     private final TemporossPlugin plugin;
 
     @Inject
-    private TemporossConfig config;  // Add this line to inject the config
-
-    @Inject
     public TemporossProgressionOverlay(TemporossPlugin plugin) {
+        super(plugin);
         this.plugin = plugin;
-        setPosition(OverlayPosition.TOP_LEFT);
+        setPosition(OverlayPosition.TOP_CENTER); // Adjust position as needed
         setLayer(OverlayLayer.ABOVE_WIDGETS);
     }
 
     @Override
     public Dimension render(Graphics2D graphics) {
-        if (!config.showProgressionOverlay()) {  // Use the injected config directly
-            return null;
-        }
-
-
-        // Get current state from plugin/script
-        State currentState = TemporossScript.state;
-
-        // Set up the panel's visual properties
+        if (TemporossScript.isInMinigame()) {
+            State currentState = TemporossScript.state;
+            if (currentState != null) {
+                // Set up the panel's visual properties
                 panelComponent.setPreferredSize(new Dimension(300, 150));
                 panelComponent.setBackgroundColor(new Color(60, 60, 60, 180)); // Semi-transparent background
 
@@ -112,7 +105,8 @@ public class TemporossProgressionOverlay extends OverlayPanel {
                 progressBar.setLabelDisplayMode(ProgressBarComponent.LabelDisplayMode.PERCENTAGE);
 
                 panelComponent.getChildren().add(progressBar);
-
+            }
+        }
         return super.render(graphics);
     }
 

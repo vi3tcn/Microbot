@@ -54,11 +54,11 @@ public interface TemporossConfig extends Config {
 
     // boolean to bring a hammer
     @ConfigItem(
-        keyName = "hammer",
-        name = "Hammer",
-        description = "Bring a hammer",
-        position = 2,
-        section = generalSection
+            keyName = "hammer",
+            name = "Hammer",
+            description = "Bring a hammer (not needed if using Imcando hammer)",
+            position = 2,
+            section = generalSection
     )
     default boolean hammer() {
         return true;
@@ -125,16 +125,5 @@ default boolean imcandoHammerOffHand() {
     )
     default HarpoonType harpoonType() {
         return HarpoonType.INFERNAL_HARPOON;
-    }
-
-    @ConfigItem(
-            keyName = "showProgressionOverlay",
-            name = "Show Progression Overlay",
-            description = "Toggle the progression overlay display",
-            position = 5,
-            section = generalSection
-    )
-    default boolean showProgressionOverlay() {
-        return true;
     }
 }
