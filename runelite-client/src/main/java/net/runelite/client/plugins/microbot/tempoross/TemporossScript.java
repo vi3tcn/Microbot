@@ -1,3 +1,4 @@
+```java
 package net.runelite.client.plugins.microbot.tempoross;
 
 import net.runelite.api.*;
@@ -374,7 +375,6 @@ public class TemporossScript extends Script {
                 .filter(npc -> !inCloud(npc.getWorldLocation(),2))
                 .map(Rs2NpcModel::new)
                 .collect(Collectors.toList());
-        TemporossOverlay.setAmmoList(ammoCrates);
     }
 
     public static void updateFishSpotData(){
@@ -612,7 +612,7 @@ public class TemporossScript extends Script {
                     return;
                 }
 
-                List<Rs2NpcModel> ammoCrates = Rs2Npc.getNpcs()
+                ammoCrates = Rs2Npc.getNpcs()
                         .filter(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Fill"))
                         .filter(npc -> npc.getWorldLocation().distanceTo(workArea.mastPoint) <= 4)
                         .filter(npc -> !inCloud(npc.getWorldLocation(),1))
@@ -627,7 +627,7 @@ public class TemporossScript extends Script {
                     return;
                 }
 
-                if (inCloud(Rs2Player.getWorldLocation())) {
+                if (inCloud(LocalPoint.fromWorld(Microbot.getClient().getTopLevelWorldView(), Rs2Player.getWorldLocation()))) {
                     log("In cloud, walking to safe point");
                     Rs2NpcModel ammoCrate = ammoCrates.stream()
                             .max(Comparator.comparingInt(value -> new Rs2WorldPoint(value.getWorldLocation()).distanceToPath(Rs2Player.getWorldLocation()))).orElse(null);
