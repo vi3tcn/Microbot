@@ -23,8 +23,8 @@ import net.runelite.client.plugins.microbot.util.npc.Rs2Npc;
 import net.runelite.client.plugins.microbot.util.npc.Rs2NpcModel;
 import net.runelite.client.plugins.microbot.util.player.Rs2Player;
 import net.runelite.client.plugins.microbot.util.walker.Rs2Walker;
+import net.runelite.client.plugins.microbot.util.inventory.Rs2ItemModel;
 import net.runelite.api.ObjectID;
-
 
 
 import java.util.*;
@@ -129,8 +129,8 @@ public class TemporossScript extends Script {
     }
 
     private boolean hasHarpoon() {
-        return Rs2Inventory.all().stream().anyMatch(item -> harpoonType.isVariant(item.getId())) ||
-           Rs2Equipment.all().stream().anyMatch(item -> harpoonType.isVariant(item.getId()));
+        return Rs2Inventory.items().anyMatch(item -> harpoonType.isVariant(item.getId())) ||
+                Rs2Equipment.all().anyMatch(item -> harpoonType.isVariant(item.getId()));
     }
 
     private void determineWorkArea() {
@@ -612,18 +612,25 @@ public class TemporossScript extends Script {
                     return;
                 }
 
-                List<Rs2NpcModel> ammoCrates = TemporossOverlay.getAmmoList();
+                List<Rs2NpcModel> ammoCrates = Rs2Npc.getNpcs()
+                        .filter(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Fill"))
+                        .filter(npc -> npc.getWorldLocation().distanceTo(workArea.mastPoint) <= 4)
+                        .filter(npc -> !inCloud(npc.getWorldLocation(),1))
+                        .map(Rs2NpcModel::new)
+                        .collect(Collectors.toList());
+
+                TemporossOverlay.setAmmoList(ammoCrates); // Update the overlay's list
+
                 if (ammoCrates.isEmpty()) {
                     log("Can't find ammo crate, walking to the safe point");
                     walkToSafePoint();
                     return;
                 }
 
-
-                if (inCloud(Microbot.getClient().getLocalLocation())) {
+                if (inCloud(Rs2Player.getWorldLocation())) {
                     log("In cloud, walking to safe point");
                     Rs2NpcModel ammoCrate = ammoCrates.stream()
-                            .max(Comparator.comparingInt(value -> new Rs2WorldPoint(value.getWorldLocation()).distanceToPath(Microbot.getClient().getLocalPlayer().getWorldLocation()))).orElse(null);
+                            .max(Comparator.comparingInt(value -> new Rs2WorldPoint(value.getWorldLocation()).distanceToPath(Rs2Player.getWorldLocation()))).orElse(null);
                     Rs2Camera.turnTo(ammoCrate);
                     Rs2Npc.interact(ammoCrate, "Fill");
                     log("Switching ammo crate");
