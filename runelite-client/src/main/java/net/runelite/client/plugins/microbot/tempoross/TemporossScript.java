@@ -367,14 +367,19 @@ public class TemporossScript extends Script {
     }
 
     // update ammocrate data
-    public static void updateAmmoCrateData(){
+    public static void updateAmmoCrateData() {
+        if (workArea == null) return;
+
         List<Rs2NpcModel> ammoCrates = Rs2Npc
                 .getNpcs()
                 .filter(npc -> Arrays.asList(npc.getComposition().getActions()).contains("Fill"))
                 .filter(npc -> npc.getWorldLocation().distanceTo(workArea.mastPoint) <= 4)
-                .filter(npc -> !inCloud(npc.getWorldLocation(),2))
+                .filter(npc -> !inCloud(npc.getWorldLocation(), 2))
                 .map(Rs2NpcModel::new)
                 .collect(Collectors.toList());
+
+        // Store the ammo crates list for later use if needed
+        TemporossOverlay.setAmmoList(ammoCrates);
     }
 
     public static void updateFishSpotData(){
