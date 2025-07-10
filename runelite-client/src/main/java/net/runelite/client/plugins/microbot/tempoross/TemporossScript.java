@@ -7,7 +7,6 @@ import net.runelite.api.coords.WorldPoint;
 import net.runelite.api.widgets.InterfaceID;
 import net.runelite.api.widgets.Widget;
 import net.runelite.client.plugins.gpu.GpuPlugin;
-import net.runelite.client.plugins.microbot.Microbot;
 import net.runelite.client.plugins.microbot.Script;
 import net.runelite.client.plugins.microbot.breakhandler.BreakHandlerScript;
 import net.runelite.client.plugins.microbot.shortestpath.ShortestPathPlugin;
@@ -129,7 +128,7 @@ public class TemporossScript extends Script {
     }
 
     private int getPhase() {
-        return 1 + (TemporossPlugin.waves / 4); // every 3 waves, phase increases by 1
+        return 1 + (TemporossPlugin.waves / 4); // every 3 waves, the phase increases by 1
     }
 
     static boolean isInMinigame() {
@@ -155,7 +154,7 @@ public class TemporossScript extends Script {
             }
             boolean isWest = forfeitNpc.getWorldLocation().getX() < ammoCrate.getWorldLocation().getX();
             workArea = new TemporossWorkArea(forfeitNpc.getWorldLocation(), isWest);
-            // log tempoross work area if its west or east
+            // log tempoross work area if it's west or east
             if(Rs2AntibanSettings.devDebug) {
                 log("Tempoross work area: " + (isWest ? "west" : "east"));
                 log(workArea.getAllPointsAsString());
@@ -292,7 +291,7 @@ public class TemporossScript extends Script {
             return;
         }
 
-        // Only proceed with regular actions if player is idle
+        // Only proceed with regular actions if the player is idle
         if (!isIdle()) {
             return;
         }
@@ -341,7 +340,7 @@ public class TemporossScript extends Script {
     }
 
     private void fetchMissingItems() {
-        // 1) Get hammer if needed
+        // 1) Get a hammer if needed
         if (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.hasItem("Hammer")) {
             if (!fightFiresInPath(workArea.hammerPoint)) {
                 log("Could not douse fires in path to hammer crate, forfeiting");
@@ -355,7 +354,7 @@ public class TemporossScript extends Script {
             }
         }
 
-        // 2) Get harpoon if needed
+        // 2) Get a harpoon if needed
         if (!hasHarpoon() && harpoonType != HarpoonType.BAREHAND) {
             harpoonType = temporossConfig.harpoonType();
             log("Missing " + harpoonType.getName() + ", getting from crate");
@@ -462,7 +461,7 @@ public class TemporossScript extends Script {
 
     private void handleIdleState() {
         if (!isIdle()) {
-            return; // Wait until player is idle before proceeding
+            return; // Wait until the player is idle before proceeding
         }
         // Rest of your idle state handling code...
     }
@@ -535,7 +534,7 @@ public class TemporossScript extends Script {
     }
 
     public static void updateFishSpotData(){
-        // if double fishing spot is present, prioritize it
+        // if a double fishing spot is present, prioritize it
         fishSpots = Rs2Npc.getNpcs()
                 .filter(npc -> npc.getId() == NpcID.FISHING_SPOT_10569 || npc.getId() == NpcID.FISHING_SPOT_10568 || npc.getId() == NpcID.FISHING_SPOT_10565)
                 .filter(npc -> !inCloud(npc.getRuneliteNpc().getWorldLocation(),2))
@@ -584,16 +583,19 @@ public class TemporossScript extends Script {
     }
 
     private void handleDamagedMast() {
-        if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
-                (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
-                (temporossConfig.hammer() && temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isEquipped("Imcando hammer", EquipmentInventorySlot.SHIELD)) ||
-                !temporossConfig.hammer())
-            return;
-
         TileObject damagedMast = workArea.getBrokenMast();
         if (damagedMast == null)
             return;
+
+        // Check if within 5 tiles first
         if (Microbot.getClient().getLocalPlayer().getWorldLocation().distanceTo(damagedMast.getWorldLocation()) <= 5) {
+            // Only then check player state and requirements
+            if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
+                    (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
+                    (temporossConfig.hammer() && temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isWearing("Imcando hammer (off-hand)", true)) ||
+                    !temporossConfig.hammer())
+                return;
+
             sleep(600);
             if (Rs2GameObject.interact(damagedMast, "Repair")) {
                 log("Repairing mast");
@@ -603,16 +605,19 @@ public class TemporossScript extends Script {
     }
 
     private void handleDamagedTotem() {
-        if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
-                (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
-                (temporossConfig.hammer() && temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isEquipped("Imcando hammer", EquipmentInventorySlot.SHIELD)) ||
-                !temporossConfig.hammer())
+        TileObject damagedTotem = workArea.getBrokenTotem();
+        if (damagedTotem == null)
             return;
 
-        TileObject damagedTotem = workArea.getBrokenTotem();
-        if(damagedTotem == null)
-            return;
+        // Check if within 5 tiles first
         if (Microbot.getClient().getLocalPlayer().getWorldLocation().distanceTo(damagedTotem.getWorldLocation()) <= 5) {
+            // Only then check player state and requirements
+            if (Rs2Player.isMoving() || Rs2Player.isInteracting() ||
+                    (temporossConfig.hammer() && !temporossConfig.imcandoHammerOffHand() && !Rs2Inventory.contains("Hammer")) ||
+                    (temporossConfig.hammer() && temporossConfig.imcandoHammerOffHand() && !Rs2Equipment.isWearing("Imcando hammer (off-hand)", true)) ||
+                    !temporossConfig.hammer())
+                return;
+
             sleep(600);
             if (Rs2GameObject.interact(damagedTotem, "Repair")) {
                 log("Repairing totem");
