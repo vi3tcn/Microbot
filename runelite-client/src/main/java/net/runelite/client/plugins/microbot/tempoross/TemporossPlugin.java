@@ -178,16 +178,5 @@ public class TemporossPlugin extends Plugin {
     public void setRope(boolean rope) {
         configManager.setConfiguration("microbot-tempoross", "rope", rope);
     }
-    // Set hammer config
-    public void setHammer(boolean hammer) {
-        configManager.setConfiguration("microbot-tempoross", "hammer", hammer);
-    }
-    // Set imcando hammer config
-    public void setImcandoHammer(boolean enabled) {
-    configManager.setConfiguration("microbot-tempoross", "imcandoHammerOffHand", enabled);
-    }
-    // Set spirit anglers config
-    public void setSpiritAnglers(boolean enabled) {
-    configManager.setConfiguration("microbot-tempoross", "spiritAnglers", enabled);
     }
 }

@@ -42,35 +42,23 @@ public interface TemporossConfig extends Config {
     // General settings
     // number of buckets to bring (default 6)
     @ConfigItem(
-        keyName = "buckets",
-        name = "Buckets",
-        description = "Number of buckets to bring",
-        position = 1,
-        section = generalSection
+            keyName = "buckets",
+            name = "Number of Buckets",
+            description = "How many buckets to keep",
+            position = 1,
+            section = generalSection
     )
     default int buckets() {
         return 6;
-    }
-
-    // boolean to bring a hammer
-    @ConfigItem(
-            keyName = "hammer",
-            name = "Hammer",
-            description = "Bring a hammer (not needed if using Imcando hammer)",
-            position = 2,
-            section = generalSection
-    )
-    default boolean hammer() {
-        return true;
-    }
+    } // Default Value
 
     // boolean to bring a rope
     @ConfigItem(
-        keyName = "rope",
-        name = "Rope",
-        description = "Bring a rope",
-        position = 3,
-        section = generalSection
+            keyName = "rope",
+            name = "Rope",
+            description = "Bring a rope",
+            position = 3,
+            section = generalSection
     )
     default boolean rope() {
         return true;
@@ -100,18 +88,6 @@ public interface TemporossConfig extends Config {
     default boolean spiritAnglers() {
         return false;
     }
-
-    // boolean if we are using Imcando hammer (off-hand)
-    @ConfigItem(
-    keyName = "imcandoHammerOffHand",
-    name = "Imcando Hammer (Off-hand)",
-    description = "Enable if using Imcando hammer in off-hand slot",
-    position = 2,
-    section = equipmentSection
-)
-default boolean imcandoHammerOffHand() {
-    return false;
-}
 
 
     // Harpoon settings
