@@ -130,16 +130,6 @@ public class TemporossPlugin extends Plugin {
     }
 
     @Subscribe
-    public void onVarbitChanged(VarbitChanged event)
-    {
-        if (event.getVarbitId() == VARB_IS_TETHERED)
-        {
-            log.info("Tethered: {}", event.getValue());
-            isTethered = event.getValue() > 0;
-        }
-    }
-
-    @Subscribe
     public void onChatMessage(ChatMessage event)
     {
         ChatMessageType type = event.getType();
@@ -164,7 +154,8 @@ public class TemporossPlugin extends Plugin {
                 fireClouds++;
                 log.info("Clouds {}", fireClouds);
             }
-
         }
     }
+} 
+
 
