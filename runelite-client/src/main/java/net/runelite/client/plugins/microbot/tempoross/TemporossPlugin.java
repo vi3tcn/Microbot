@@ -164,19 +164,7 @@ public class TemporossPlugin extends Plugin {
                 fireClouds++;
                 log.info("Clouds {}", fireClouds);
             }
-            {
 
-            }
         }
     }
 
-    // Set harpoon type config
-    public void setHarpoonType(HarpoonType harpoonType) {
-        configManager.setConfiguration("microbot-tempoross", "harpoonType", harpoonType);
-    }
-    // Set rope config
-    public void setRope(boolean rope) {
-        configManager.setConfiguration("microbot-tempoross", "rope", rope);
-    }
-    }
-}
