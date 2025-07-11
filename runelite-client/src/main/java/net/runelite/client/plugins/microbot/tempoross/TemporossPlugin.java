@@ -30,7 +30,18 @@ import java.util.regex.Pattern;
 )
 @Slf4j
 public class TemporossPlugin extends Plugin {
-    @Inject
+
+        private HarpoonType harpoonType;
+
+        public void setHarpoonType(HarpoonType harpoonType) {
+            this.harpoonType = harpoonType;
+        }
+
+        public HarpoonType getHarpoonType() {
+            return harpoonType;
+        }
+
+        @Inject
     private TemporossConfig config;
 
     @Inject
