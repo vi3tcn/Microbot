@@ -10,8 +10,6 @@ import net.runelite.client.plugins.microbot.util.gameobject.Rs2GameObject;
 
 
 public class TemporossWorkArea
-
-
 {
     public final WorldPoint exitNpc;
     public final WorldPoint safePoint;
@@ -28,7 +26,7 @@ public class TemporossWorkArea
     public TemporossWorkArea(WorldPoint exitNpc, boolean isWest)
     {
         this.exitNpc = exitNpc;
-        this.safePoint = exitNpc.dx(1).dy(2);
+        this.safePoint = exitNpc.dx(1).dy(1);
 
         if (isWest)
         {
@@ -91,12 +89,13 @@ public class TemporossWorkArea
 }
 
     public TileObject getBrokenMast() {
-    MastInfo mastInfo = getMastInfo();
-    if (mastInfo != null && mastInfo.repair) {
-        return mastInfo.tileObject;
-    }
+        //WorldPoint localInstance = WorldPoint.toLocalInstance(Microbot.getClient().getTopLevelWorldView(),mastPoint).stream().findFirst().orElse(null);
+    TileObject mast = Rs2GameObject.findGameObjectByLocation(mastPoint);
+    if (mast != null && (mast.getId() == ObjectID.DAMAGED_MAST_40996 || mast.getId() == ObjectID.DAMAGED_MAST_40997))
+        return mast;
+
     return null;
-}
+    }
 
     public TileObject getTotem() {
         //WorldPoint localInstance = WorldPoint.toLocalInstance(Microbot.getClient().getTopLevelWorldView(),totemPoint).stream().findFirst().orElse(null);
@@ -122,6 +121,26 @@ public class TemporossWorkArea
         return Rs2GameObject.findObject(ObjectID.SHRINE_41236, rangePoint);
     }
 
+    public TileObject getClosestTether() {
+    TileObject mast = getMast();
+    TileObject totem = getTotem();
+
+    if (mast == null) {
+        return totem;
+    }
+
+    if (totem == null) {
+        return mast;
+    }
+
+    Rs2WorldPoint mastLocation = new Rs2WorldPoint(mast.getWorldLocation());
+    Rs2WorldPoint totemLocation = new Rs2WorldPoint(totem.getWorldLocation());
+    Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
+
+    return mastLocation.distanceToPath(playerLocation.getWorldPoint()) <
+            totemLocation.distanceToPath(playerLocation.getWorldPoint()) ? mast : totem;
+}
+
     public String getAllPointsAsString() {
         String sb = "exitNpc=" + exitNpc +
                 ", safePoint=" + safePoint +
@@ -137,47 +156,4 @@ public class TemporossWorkArea
 
         return sb;
     }
-
-    public MastInfo getClosestTether() {
-        TileObject mast = getMast();
-        TileObject totem = getTotem();
-
-        if (mast == null && totem == null) {
-            return null;
-        }
-
-        if (mast == null) {
-            return new MastInfo("totem", totem, getBrokenTotem() != null);
-        }
-
-        if (totem == null) {
-            return new MastInfo("mast", mast, getBrokenMast() != null);
-        }
-
-        Rs2WorldPoint mastLocation = new Rs2WorldPoint(mast.getWorldLocation());
-        Rs2WorldPoint totemLocation = new Rs2WorldPoint(totem.getWorldLocation());
-        Rs2WorldPoint playerLocation = new Rs2WorldPoint(Microbot.getClient().getLocalPlayer().getWorldLocation());
-
-        if (mastLocation.distanceToPath(playerLocation.getWorldPoint()) <
-                totemLocation.distanceToPath(playerLocation.getWorldPoint())) {
-            return new MastInfo("mast", mast, getBrokenMast() != null);
-        } else {
-            return new MastInfo("totem", totem, getBrokenTotem() != null);
-        }
-    }
-
-private MastInfo getMastInfo() {
-    TileObject mast = Rs2GameObject.findGameObjectByLocation(mastPoint);
-    if (mast == null) return null;
-
-    if (mast.getId() == NullObjectID.NULL_41352 || mast.getId() == NullObjectID.NULL_41353) {
-        return new MastInfo("intact", mast, false);
-    }
-
-    if (mast.getId() == ObjectID.DAMAGED_MAST_40996 || mast.getId() == ObjectID.DAMAGED_MAST_40997) {
-        return new MastInfo("damaged", mast, true);
-    }
-
-    return null;
-}
 }

@@ -388,11 +388,15 @@ public class TemporossScript extends Script {
     }
 
     private boolean isOnStartingBoat() {
-        TileObject startingLadder = Rs2GameObject.interact(41305, "Climb"); //Tempoross object lobby ladder = 41305
+        TileObject startingLadder = Rs2GameObject.findObjectById(41305); //Tempoross object lobby ladder = 41305
         if (startingLadder == null) {
             log("Failed to find starting ladder");
             return false;
         }
+
+        // Optionally interact with the ladder
+        Rs2GameObject.interact(startingLadder, "Climb");
+
         return Rs2Player.getWorldLocation().getX() < startingLadder.getWorldLocation().getX();
     }
 
@@ -403,11 +407,14 @@ public class TemporossScript extends Script {
         if (Rs2Player.isMoving() || Rs2Player.isAnimating()) {
             return;
         }
-        TileObject startingLadder = Rs2GameObject.interact(41305, "Climb"); //Tempoross object lobby ladder = 41305
+        TileObject startingLadder = Rs2GameObject.findObjectById(41305); //Tempoross object lobby ladder = 41305
         if (startingLadder == null) {
             log("Failed to find starting ladder");
             return;
         }
+        Rs2GameObject.interact(startingLadder, "Climb");
+    }
+
         int emptyBucketCount = Rs2Inventory.count(ItemID.BUCKET);
         // If we are east of the ladder, interact with it to get on the boat
         if (!isOnStartingBoat()) {

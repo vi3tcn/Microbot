@@ -30,16 +30,15 @@ import java.util.regex.Pattern;
 )
 @Slf4j
 public class TemporossPlugin extends Plugin {
+    private static HarpoonType harpoonType;
 
-        private HarpoonType harpoonType;
+    public static void setHarpoonType(HarpoonType type) {
+        harpoonType = type;
+    }
 
-        public void setHarpoonType(HarpoonType harpoonType) {
-            this.harpoonType = harpoonType;
-        }
-
-        public HarpoonType getHarpoonType() {
-            return harpoonType;
-        }
+    public static HarpoonType getHarpoonType() {
+        return harpoonType;
+    }
 
         @Inject
     private TemporossConfig config;
@@ -171,6 +170,15 @@ public class TemporossPlugin extends Plugin {
                 log.info("Clouds {}", fireClouds);
             }
         }
+
+        @Subscribe
+        public void onVarbitChanged(VarbitChanged event) {
+        if (!TemporossScript.isInMinigame()) {
+            return;
+        }
+
+        isTethered = client.getVarbitValue(VARB_IS_TETHERED) == 1;
+    }
     }
 } 
 
