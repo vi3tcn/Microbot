@@ -74,7 +74,7 @@ public class TemporossScript extends Script {
         Rs2Antiban.resetAntibanSettings();
         Rs2AntibanSettings.naturalMouse = true;
         Rs2AntibanSettings.simulateMistakes = false;
-        Rs2AntibanSettings.takeMicroBreaks = true;
+        Rs2AntibanSettings.takeMicroBreaks = false;
         Rs2AntibanSettings.microBreakChance = 0.2;
         mainScheduledFuture = scheduledExecutorService.scheduleWithFixedDelay(() ->{
             try {
@@ -575,26 +575,37 @@ public class TemporossScript extends Script {
 
     private void handleTether() {
         MastInfo tether = workArea.getClosestTether();
-        if (tether == null) {
+
+        if (tether.tileObject == null) {
             return;
         }
 
-        if (tether.repair) {
-            //nearest tether needs repair.
+        int distanceToTether = Microbot.getClient().getLocalPlayer().getWorldLocation().distanceTo(tether.tileObject.getWorldLocation());
+
+        // Handle repairs if within 5 tiles
+        if (tether.repair && distanceToTether <= 5) {
             switch(tether.type) {
                 case "totem":
                     log("handling damaged totem");
                     handleDamagedTotem();
-                    break;
                 case "mast":
                     log("handling damaged mast");
                     handleDamagedMast();
-                    break;
             }
-            return;
         }
 
+        // Only handle tethering if wave status doesn't match tether status
         if (TemporossPlugin.incomingWave != TemporossPlugin.isTethered) {
+            //only if nearby
+            if (distanceToTether == 5) {
+                log("Player is " + distanceToTether + " away. Will sleep 1 tick");
+                sleepUntil(() -> TemporossPlugin.waveTickCounter == 1, 800);
+            }
+            if (distanceToTether < 5) {
+                log("Player is " + distanceToTether + " away. Will sleep 2 ticks");
+                sleepUntil(() -> TemporossPlugin.waveTickCounter == 2, 1200);
+            }
+
             ShortestPathPlugin.exit();
             Rs2Walker.setTarget(null);
             String action = TemporossPlugin.incomingWave ? "Tether" : "Untether";
@@ -632,7 +643,6 @@ public class TemporossScript extends Script {
         if (temporossPool != null && TemporossScript.state != State.SECOND_FILL && TemporossScript.state != State.ATTACK_TEMPOROSS && TemporossScript.ENERGY < 94) {
             TemporossScript.state = State.ATTACK_TEMPOROSS;
         }
-
     }
 
     private void handleMainLoop() {

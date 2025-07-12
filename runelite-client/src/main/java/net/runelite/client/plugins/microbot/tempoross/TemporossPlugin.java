@@ -65,6 +65,7 @@ public class TemporossPlugin extends Plugin {
 
     public static int waves = 0;
     public static int fireClouds = 0;
+    public static int waveTickCounter = 0;
     public static boolean incomingWave = false;
     public static boolean isTethered = false;
 
@@ -124,6 +125,10 @@ public class TemporossPlugin extends Plugin {
         TemporossScript.updateLastWalkPath();
 
         Rs2NpcModel doubleFishingSpot = Rs2Npc.getNpc(NpcID.FISHING_SPOT_10569);
+
+        if (incomingWave) {
+            waveTickCounter++;
+        }
 
         if (TemporossScript.state == State.INITIAL_COOK && doubleFishingSpot != null) {
             TemporossScript.state = TemporossScript.state.next;
