@@ -28,7 +28,7 @@ public class TemporossWorkArea
     public TemporossWorkArea(WorldPoint exitNpc, boolean isWest)
     {
         this.exitNpc = exitNpc;
-        this.safePoint = exitNpc.dx(1).dy(1);
+        this.safePoint = exitNpc.dx(1).dy(2);
 
         if (isWest)
         {

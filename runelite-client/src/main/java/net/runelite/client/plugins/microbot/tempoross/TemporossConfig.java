@@ -42,28 +42,27 @@ public interface TemporossConfig extends Config {
     // General settings
     // number of buckets to bring (default 6)
     @ConfigItem(
-            keyName = "buckets",
-            name = "Number of Buckets",
-            description = "How many buckets to keep",
-            position = 1,
-            section = generalSection
+        keyName = "buckets",
+        name = "Buckets",
+        description = "Number of buckets to bring",
+        position = 1,
+        section = generalSection
     )
     default int buckets() {
         return 6;
-    } // Default Value
+    }
 
     // boolean to bring a rope
     @ConfigItem(
-            keyName = "rope",
-            name = "Rope",
-            description = "Bring a rope",
-            position = 3,
-            section = generalSection
+        keyName = "rope",
+        name = "Rope",
+        description = "Bring a rope",
+        position = 2,
+        section = generalSection
     )
     default boolean rope() {
         return true;
     }
-
     // boolean to play solo
     @ConfigItem(
         keyName = "solo",
@@ -75,6 +74,8 @@ public interface TemporossConfig extends Config {
     default boolean solo() {
         return false;
     }
+
+
 
     // Equipment settings
     // boolean if we have Spirit Angler's outfit
@@ -89,7 +90,6 @@ public interface TemporossConfig extends Config {
         return false;
     }
 
-
     // Harpoon settings
     // Harpoon type to use
     @ConfigItem(
@@ -101,5 +101,16 @@ public interface TemporossConfig extends Config {
     )
     default HarpoonType harpoonType() {
         return HarpoonType.INFERNAL_HARPOON;
+    }
+
+    @ConfigItem(
+            keyName = "enableHarpoonSpec",
+            name = "Use Harpoon Special",
+            description = "Use the harpoon's special attack when attacking Tempoross.",
+            position = 2,
+            section = harpoonSection
+    )
+    default boolean enableHarpoonSpec() {
+        return true;
     }
 }
